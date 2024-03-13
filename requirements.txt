@@ -1,0 +1,5 @@
+radcad
+jupyter
+numpy
+pandas
+plotly
