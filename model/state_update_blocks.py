@@ -27,6 +27,7 @@ partial_state_update_blocks = [
             'epoch_index': s_update_epoch_index,
             'epoch_start': s_update_epoch_start,
             'epoch_promised_init_investment': s_update_epoch_promised_init_investment,
+            'mod_rp': s_update_mod_rp,
         }
     }, 
 ]

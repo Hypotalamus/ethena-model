@@ -11,4 +11,5 @@ initial_state: StateVariables = {
     'epoch_index': None, # Индекс текущей эпохи; в рамках эпохи параметры постоянны
     'epoch_start': 0.0, # Начало текущей эпохи
     'epoch_promised_init_investment': 0.0, # Инвестиции на начало текущей эпохи исходя из обещанной ставки
+    'mod_rp': 0.0, # My small experiment
 }

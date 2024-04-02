@@ -33,3 +33,8 @@ def s_update_epoch_start(params, substep, state_history, previous_state, policy_
 def s_update_epoch_promised_init_investment(params, substep, state_history, previous_state, policy_input):
     new_epoch_promised_init_investment = policy_input['new_epoch_promised_init_investment']
     return "epoch_promised_init_investment", new_epoch_promised_init_investment
+
+def s_update_mod_rp(params, substep, state_history, previous_state, policy_input):
+    new_mod_rp = policy_input['new_mod_rp']
+    return "mod_rp", new_mod_rp
+
