@@ -1,8 +1,10 @@
 import numpy as np
 from model.utils import is_shock, runge_kutta4, runge_kutta4_system
 
-RP_HIGH, RP_LOW = 0.262, 0.095
 RP_TAU = 100.
+
+GAP_BETWEEN_RN_AND_RP = .01 # 1%
+GAP_BETWEEN_RP_HIGH_AND_LOW = 0.2 # 20%
 
 def p_update_time(params, substep, state_history, previous_state):
     dtime = params['timestep']
@@ -64,7 +66,10 @@ def p_update_fund(params, substep, state_history, previous_state):
             new_promised_staked_balance = investment_list[new_epoch_index]
             new_epoch_promised_init_investment = new_promised_staked_balance
             new_staked_balance = investment_list[new_epoch_index] + manager_fund_list[new_epoch_index]
-            mod_rp = RP_HIGH
+            rn = rn_list[new_epoch_index]
+            pct_low = (np.exp(rn) - 1) - GAP_BETWEEN_RN_AND_RP
+            rp_high = np.log(pct_low + GAP_BETWEEN_RP_HIGH_AND_LOW + 1)
+            mod_rp = rp_high
         else:
             rp = rp_list[epoch_index]
             alpha = alpha_list[epoch_index]
@@ -114,8 +119,13 @@ def p_update_fund(params, substep, state_history, previous_state):
             new_epoch_promised_init_investment = new_promised_staked_balance
             new_staked_balance += investment_list[new_epoch_index] + manager_fund_list[new_epoch_index]
 
+
             tmp = min(staked_balance - promised_staked_balance, 0)
-            mod_rp = RP_LOW + (RP_HIGH - RP_LOW) * np.exp(tmp / RP_TAU)
+
+            pct_low = (np.exp(rn) - 1) - GAP_BETWEEN_RN_AND_RP
+            rp_low = max(0, np.log(pct_low + 1))
+            rp_high = max(0, np.log(pct_low + GAP_BETWEEN_RP_HIGH_AND_LOW + 1))
+            mod_rp = rp_low + (rp_high - rp_low) * np.exp(tmp / RP_TAU)
 
         new_epoch_start = curr_time
 
