@@ -1,7 +1,7 @@
 import numpy as np
 from model.utils import is_shock, runge_kutta4, runge_kutta4_system
 
-RP_TAU = 100.
+RP_TAU = 100. # = 1 for SCENARIO == 6
 
 GAP_BETWEEN_RN_AND_RP = .01 # 1%
 GAP_BETWEEN_RP_HIGH_AND_LOW = 0.2 # 20%
