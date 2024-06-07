@@ -12,8 +12,10 @@ import math
 # SCENARIO == 5 - стресс-тест автоматически регулируемой процентной ставки:
 #   alpha меняется после одного года: 0.3 -> 0.3, 0.6, 0.9, 1.0
 #   gamma меняется после одного года: 0.4 -> 0.4, 0.75, 1.0, 1.25
-# SCENARIO == 6 - параметрический резонанс
-SCENARIO = 6
+# SCENARIO == 6 - параметрический резонанс s0
+# SCENARIO == 7 - параметрический резонанс r_i
+# SCENARIO == 8 - параметрический резонанс r_p
+SCENARIO = 8
 
 if SCENARIO == 1:
     @dataclass
@@ -211,7 +213,7 @@ elif SCENARIO == 5:
         feedback_enable: List[bool]=default([True])
 
 elif SCENARIO == 6:
-    N = 2
+    N = 10
     T = 1. / 2.
     sh_nums = 365 * N
     sh_t = [1./365 * x for x in range(sh_nums)]
@@ -249,5 +251,94 @@ elif SCENARIO == 6:
         withdraw_std: List[float]=default([0.])
         # включить обратную связь
         feedback_enable: List[bool]=default([True])
+
+elif SCENARIO == 7:
+    import numpy as np
+
+    N = 10
+    T = 1. / 2. * 16.
+    sh_nums = 365 * N
+    sh_t = [1./365 * x for x in range(sh_nums)]
+    ampl = 0.45
+
+    r_i = [ampl * math.cos(2 * math.pi * t / T) for t in sh_t]
+    s0 = list( 200. * np.exp(np.cumsum(r_i) * 1./365) )
+
+    @dataclass
+    class Parameters:
+        # длительность одного шага, год
+        timestep: List[float]=default([1.e-4])
+        # моменты изменения параметров модели, год
+        shock_times: List[List[float]]=default([sh_t])
+        # C инвестиции менеджера, млн. USD
+        manager_investments: List[List[float]]=default([[0.] * sh_nums])
+        # K инвестиции инвесторов, млн. USD 
+        investors_investments: List[List[float]]=default([[0.] * sh_nums])
+        # s0 плотность депозитов в начале периодов, млн. USD / год  
+        deposits_density: List[List[float]]=default([s0]) # []
+        # ri скорость инвестиций, 1 / год 
+        investment_rate: List[List[float]]=default([r_i])
+        # rw скорость оттока средств, 1 / год 
+        withdraw_rate: List[List[float]]=default([[0.6] * sh_nums])
+        # rp обещанная скорость прироста средств, 1 / год 
+        promised_profit_rate: List[List[float]]=default([[0.095] * sh_nums])
+        # rn действительная скорость прироста средств, 1 / год 
+        actual_profit_rate: List[List[float]]=default([[0.104] * sh_nums])
+        # Доля наминченных токенов, идущих в стейк (в каждый момент времени)    
+        alpha: List[List[float]]=default([[0.6] * sh_nums])
+        # Доля погашаемых токенов при выходе из стейка (в каждый момент времени)
+        beta: List[List[float]]=default([[0.9] * sh_nums])
+        # Коэффициент погашения токенов, находящихся в обращении (в каждый момент времени)
+        gamma: List[List[float]]=default([[1.0] * sh_nums])
+        # Стандартное отклонение для инвестиций на каждом шаге
+        invest_std: List[float]=default([0.])
+        # стандартное отклонение для оттока средств
+        withdraw_std: List[float]=default([0.])
+        # включить обратную связь
+        feedback_enable: List[bool]=default([True])
+
+elif SCENARIO == 8:
+    N = 4
+    T = 1. / 2.
+    sh_nums = 365 * N
+    sh_t = [1./365 * x for x in range(sh_nums)]
+    ampl = 0.069
+    ampl_w = 0.4
+
+    r_p = [0.14 + ampl * math.cos(2 * math.pi * t / T - math.pi / 2) for t in sh_t]
+    r_w = [0.6 - ampl_w * math.cos(2 * math.pi * t / T - math.pi / 2) for t in sh_t]
+
+    @dataclass
+    class Parameters:
+        # длительность одного шага, год
+        timestep: List[float]=default([1.e-4])
+        # моменты изменения параметров модели, год
+        shock_times: List[List[float]]=default([sh_t])
+        # C инвестиции менеджера, млн. USD
+        manager_investments: List[List[float]]=default([[0.] * sh_nums])
+        # K инвестиции инвесторов, млн. USD 
+        investors_investments: List[List[float]]=default([[0.] * sh_nums])
+        # s0 плотность депозитов в начале периодов, млн. USD / год  
+        deposits_density: List[List[float]]=default([[200.0] * sh_nums]) # []
+        # ri скорость инвестиций, 1 / год 
+        investment_rate: List[List[float]]=default([[0.] * sh_nums])
+        # rw скорость оттока средств, 1 / год 
+        withdraw_rate: List[List[float]]=default([r_w])
+        # rp обещанная скорость прироста средств, 1 / год 
+        promised_profit_rate: List[List[float]]=default([r_p])
+        # rn действительная скорость прироста средств, 1 / год 
+        actual_profit_rate: List[List[float]]=default([[0.104] * sh_nums])
+        # Доля наминченных токенов, идущих в стейк (в каждый момент времени)    
+        alpha: List[List[float]]=default([[0.6] * sh_nums])
+        # Доля погашаемых токенов при выходе из стейка (в каждый момент времени)
+        beta: List[List[float]]=default([[0.9] * sh_nums])
+        # Коэффициент погашения токенов, находящихся в обращении (в каждый момент времени)
+        gamma: List[List[float]]=default([[1.0] * sh_nums])
+        # Стандартное отклонение для инвестиций на каждом шаге
+        invest_std: List[float]=default([0.])
+        # стандартное отклонение для оттока средств
+        withdraw_std: List[float]=default([0.])
+        # включить обратную связь
+        feedback_enable: List[bool]=default([False])
 
 parameters = Parameters().__dict__
